@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftShare - Wireless File Transfer</title>
+    <style>
+        :root {
+            /* 🌸 Core Theme Colors */
+            --primary: #c084fc;           /* Soft lilac / rose purple */
+            --primary-dark: #a855f7;      /* Slightly deeper purple */
+            --secondary: #fbcfe8;         /* Light blush pink */
+            --accent: #f472b6;            /* Rose accent for hover */
+            
+            /* 🌿 Feedback Colors */
+            --success: #86efac;           /* Soft green */
+            --error: #fca5a5;             /* Gentle coral red */
+            --warning: #fde68a;           /* Light gold */
+
+            /* ⚪ Neutral & Background */
+            --bg-gradient: linear-gradient(135deg, #f9e3f1 0%, #e9d5ff 100%);
+            --surface: #ffffff;
+            --surface-alt: #faf7fc;
+            --border: #e9d8fd;
+            --text-primary: #3a3a3a;
+            --text-secondary: #6b6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            font-weight: 400;
+        }
+
+        .instructions {
+            margin-bottom: 30px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            position: relative;
+        }
+
+        .instructions::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .instruction-card {
+            background: linear-gradient(135deg, var(--surface-alt) 0%, rgba(255,255,255,0.8) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .instruction-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+        }
+
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .instruction-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--border);
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background: var(--surface-alt);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 180, 255, 0.4);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f3e8ff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--surface-alt);
+            border-radius: 10px;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .upload-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .upload-column {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid var(--border);
+        }
+
+        .upload-column.active {
+            border-color: var(--primary);
+        }
+
+        .upload-column.completed {
+            border-color: var(--success);
+        }
+
+        .column-header {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .column-header.active {
+            background: #f3e8ff;
+            color: var(--primary-dark);
+        }
+
+        .column-header.completed {
+            background: #ecfdf5;
+            color: #166534;
+        }
+
+        .column-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 30px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+
+        .file-size {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+        }
+
+        .file-count {
+            background: var(--primary);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .file-progress {
+            margin-top: 8px;
+            display: none;
+        }
+
+        .file-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f3e8ff;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .file-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #a7f3d0);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .file-progress-text {
+            color: var(--text-secondary);
+            font-size: 0.75em;
+            text-align: center;
+        }
+
+        .file-status {
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .status-ready {
+            color: #f59e0b;
+        }
+
+        .status-uploading {
+            color: var(--primary-dark);
+        }
+
+        .status-completed {
+            color: #22c55e;
+        }
+        
+        .status-skipped {
+            color: #ff9800;
+        }
+        
+        .retry-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .retry-btn:hover {
+            background: #ff5252;
+        }
+
+        .status-error {
+            color: var(--error);
+        }
+
+        .upload-stats {
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+
+        .upload-speed {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .upload-time {
+            color: var(--text-secondary);
+        }
+
+        .empty-column {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .upload-columns {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .success-message {
+            color: #166534;
+            font-weight: 600;
+            margin-top: 15px;
+            padding: 10px;
+            background: #dcfce7;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .error-message {
+            color: #7f1d1d;
+            font-weight: 600;
+            margin-top: 15px;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 8px;
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #d8b4fe;           /* Softer lilac for dark backgrounds */
+                --primary-dark: #c084fc;      /* Glow accent */
+                --secondary: #f9a8d4;         /* Soft rose pink */
+                --accent: #f472b6;            /* Highlight rose */
+
+                --success: #4ade80;           /* Gentle green */
+                --error: #f87171;
+                --warning: #facc15;
+
+                --bg-gradient: linear-gradient(135deg, #2b2139 0%, #1e152d 100%);
+                --surface: #2a2038;
+                --surface-alt: #231a30;
+                --border: #3b2a4a;
+
+                --text-primary: #f4eaff;
+                --text-secondary: #c8b8e5;
+            }
+
+            body {
+                background: var(--bg-gradient);
+                color: var(--text-primary);
+            }
+
+            .container {
+                background: var(--surface);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            }
+
+            .upload-area {
+                background: var(--surface-alt);
+                border-color: var(--border);
+            }
+
+            .upload-area:hover,
+            .upload-area.dragover {
+                background: #32264a;
+            }
+
+            .upload-btn {
+                color: #fff;
+            }
+
+            .progress-bar {
+                background: #3a2f50;
+            }
+
+            .file-info {
+                background: var(--surface-alt);
+            }
+
+            .file-item {
+                border-bottom: 1px solid #3b2a4a;
+            }
+
+            .success-message {
+                background: #14532d;
+                color: #bbf7d0;
+            }
+
+            .error-message {
+                background: #7f1d1d;
+                color: #fee2e2;
+            }
+
+            .instruction-card {
+                background: linear-gradient(135deg, var(--surface-alt) 0%, rgba(42, 32, 56, 0.8) 100%);
+                border-color: var(--border);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .step-icon {
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                box-shadow: 0 2px 8px rgba(216, 180, 254, 0.3);
+            }
+
+            .step-title {
+                color: var(--text-primary);
+            }
+
+            .step-description {
+                color: var(--text-secondary);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .upload-area {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SwiftShare</h1>
+        <div class="instructions">
+            <div class="instruction-card">
+                <div class="instruction-step">
+                    <div class="step-icon">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Select Your Files</div>
+                        <div class="step-description">Choose files from your device or drag & drop them into the upload area</div>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-icon">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Click Upload</div>
+                        <div class="step-description">Press the upload button to start transferring files to your PC</div>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-icon">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Track Progress</div>
+                        <div class="step-description">Monitor upload progress and speeds in the sections below</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Tap to select files or drag & drop</div>
+            <div style="color: #999; font-size: 0.9em;">Supports all file types</div>
+        </div>
+        
+        <input type="file" id="fileInput" class="file-input" multiple>
+        
+        <button class="upload-btn" id="uploadBtn" disabled>Upload Files</button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+        
+        <div class="file-info" id="fileInfo" style="display: none;">
+            <div class="upload-columns">
+                <div class="upload-column active">
+                    <div class="column-header active">Awaiting Uploads</div>
+                    <div class="column-content" id="activeFiles"></div>
+                </div>
+                <div class="upload-column completed">
+                    <div class="column-header completed">Completed Uploads</div>
+                    <div class="column-content" id="completedFiles"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="success-message" id="successMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const fileInfo = document.getElementById('fileInfo');
+        const activeFiles = document.getElementById('activeFiles');
+        const completedFiles = document.getElementById('completedFiles');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let selectedFiles = [];
+
+        // File selection
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            selectedFiles = files;
+            uploadBtn.disabled = false;
+            
+            if (files.length > 0) {
+                displaySelectedFiles(files);
+                fileInfo.style.display = 'block';
+                
+                // Auto-scroll to show the upload section
+                setTimeout(() => {
+                    fileInfo.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 100);
+            }
+        }
+
+        function displaySelectedFiles(files) {
+            activeFiles.innerHTML = '';
+            completedFiles.innerHTML = '<div class="empty-column">No completed uploads yet</div>';
+            
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.id = `file-${index}`;
+                
+                fileItem.innerHTML = `
+                    <div class="file-number">
+                        <div class="file-count">${index + 1}</div>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                        <div class="file-progress" id="progress-${index}">
+                            <div class="file-progress-bar">
+                                <div class="file-progress-fill" id="fill-${index}"></div>
+                            </div>
+                            <div class="file-progress-text" id="text-${index}">0%</div>
+                        </div>
+                        <div class="file-status status-ready" id="status-${index}">Ready</div>
+                        <div class="upload-stats" id="stats-${index}"></div>
+                    </div>
+                `;
+                
+                activeFiles.appendChild(fileItem);
+            });
+            
+            updateColumnCounters();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatElapsedTime(seconds) {
+            if (seconds < 60) {
+                return `${seconds.toFixed(1)}s`;
+            } else if (seconds < 3600) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+                return `${minutes}m ${remainingSeconds}s`;
+            } else {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                return `${hours}h ${minutes}m`;
+            }
+        }
+
+        // Upload functionality
+        uploadBtn.addEventListener('click', uploadFiles);
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+
+            const batchStartTime = Date.now();
+            let completedCount = 0;
+            let totalSizeBytes = 0;
+            let totalFilesToProcess = selectedFiles.length; // Total files to process (including skipped)
+            let skippedCount = 0;
+            let fileProgresses = {}; // Track individual file progress
+
+            // Function to update overall progress in real-time
+            function updateOverallProgress() {
+                let totalProgress = 0;
+                
+                // Add progress from skipped files (100% each)
+                totalProgress += skippedCount * 100;
+                
+                // Add progress from individual file uploads
+                for (const fileIndex in fileProgresses) {
+                    totalProgress += fileProgresses[fileIndex];
+                }
+                
+                // Calculate percentage with bounds checking
+                const overallPercentage = Math.max(0, Math.min(100, totalProgress / totalFilesToProcess));
+                console.log(`Overall progress: ${overallPercentage.toFixed(1)}% (${totalProgress}/${totalFilesToProcess * 100})`);
+                
+                progressFill.style.width = overallPercentage + '%';
+                progressText.textContent = Math.round(overallPercentage) + '%';
+            }
+
+            // Update column header when upload starts
+            document.querySelector('.column-header.active').textContent = 'Active Uploads';
+            updateColumnCounters();
+            
+            // Clear completed files when starting new upload
+            completedFiles.innerHTML = '<div class="empty-column">No completed uploads yet</div>';
+
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            hideMessages();
+
+            // Initialize overall progress bar
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+
+            // Show progress bars for all files
+            selectedFiles.forEach((file, index) => {
+                const progressDiv = document.getElementById(`progress-${index}`);
+                const statusDiv = document.getElementById(`status-${index}`);
+                if (progressDiv) progressDiv.style.display = 'block';
+                if (statusDiv) statusDiv.textContent = 'Ready';
+            });
+
+            try {
+                // Step 1: Pre-check files for duplicates
+                console.log('Pre-checking files for duplicates...');
+                const filesToCheck = selectedFiles.map(file => ({
+                    name: file.name,
+                    size: file.size
+                }));
+                console.log('Sending files to pre-check:', filesToCheck);
+                
+                const precheckResponse = await fetch('/precheck', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        files: filesToCheck
+                    })
+                });
+
+                if (!precheckResponse.ok) {
+                    throw new Error(`Pre-check failed: ${precheckResponse.status}`);
+                }
+                
+                const precheckData = await precheckResponse.json();
+                console.log('Pre-check results:', precheckData);
+
+                // Handle skipped files immediately
+                skippedCount = precheckData.filesToSkip.length;
+                for (const skippedFile of precheckData.filesToSkip) {
+                    const fileIndex = selectedFiles.findIndex(f => f.name === skippedFile.name);
+                    if (fileIndex !== -1) {
+                        const statusDiv = document.getElementById(`status-${fileIndex}`);
+                        if (statusDiv) {
+                            statusDiv.textContent = `Skipped (already exists) | ${new Date().toLocaleTimeString()}`;
+                            statusDiv.className = 'file-status status-skipped';
+                        }
+                        moveToCompleted(fileIndex);
+                    }
+                }
+                
+                // Update overall progress for skipped files
+                updateOverallProgress();
+
+                // Step 2: Upload only new files
+                const filesToUpload = precheckData.filesToUpload;
+                console.log(`Uploading ${filesToUpload.length} new files, skipping ${skippedCount} duplicates...`);
+
+                for (const fileInfo of filesToUpload) {
+                    const fileIndex = selectedFiles.findIndex(f => f.name === fileInfo.name);
+                    if (fileIndex === -1) continue;
+
+                    const file = selectedFiles[fileIndex];
+                    const statusDiv = document.getElementById(`status-${fileIndex}`);
+                    const progressFill = document.getElementById(`fill-${fileIndex}`);
+                    const progressText = document.getElementById(`text-${fileIndex}`);
+                    const statsDiv = document.getElementById(`stats-${fileIndex}`);
+                    
+                    if (statusDiv) statusDiv.textContent = 'Uploading...';
+                    if (statusDiv) statusDiv.className = 'file-status status-uploading';
+
+                    try {
+                        // Initialize file progress tracking
+                        fileProgresses[fileIndex] = 0;
+                        
+                        await uploadSingleFile(file, fileIndex, document.getElementById(`fill-${fileIndex}`), document.getElementById(`text-${fileIndex}`), statusDiv, statsDiv, (progress) => {
+                            // Update individual file progress
+                            fileProgresses[fileIndex] = progress;
+                            // Update overall progress in real-time
+                            updateOverallProgress();
+                        });
+                        
+                        // Mark file as completed (100% progress)
+                        fileProgresses[fileIndex] = 100;
+                        updateOverallProgress();
+                        
+                        // Move completed file to completed column
+                        moveToCompleted(fileIndex);
+                        
+                        // Track batch statistics
+                        completedCount++;
+                        totalSizeBytes += file.size;
+                        
+                    } catch (error) {
+                        console.error(`Error uploading file ${file.name}:`, error);
+                        if (statusDiv) {
+                            statusDiv.textContent = 'Failed';
+                            statusDiv.className = 'file-status status-error';
+                            
+                            // Add retry button for failed uploads
+                            const retryBtn = document.createElement('button');
+                            retryBtn.textContent = 'Retry';
+                            retryBtn.className = 'retry-btn';
+                            retryBtn.onclick = () => retryUpload(file, fileIndex, progressFill, progressText, statusDiv, statsDiv);
+                            statusDiv.appendChild(retryBtn);
+                        }
+                        showError(`Failed to upload ${file.name}`);
+                        uploadBtn.disabled = false;
+                        return;
+                    }
+                }
+
+                // Show batch completion statistics
+                const batchEndTime = Date.now();
+                const batchDuration = (batchEndTime - batchStartTime) / 1000;
+                const totalSizeMB = totalSizeBytes / (1024 * 1024);
+                const totalSizeGB = totalSizeMB / 1024;
+                const averageSpeed = totalSizeMB / batchDuration;
+
+                // Send batch statistics to server for terminal display
+                console.log('Sending batch stats:', {
+                    files: completedCount,
+                    totalSizeMB: totalSizeMB,
+                    totalSizeGB: totalSizeGB,
+                    duration: batchDuration,
+                    averageSpeed: averageSpeed
+                });
+                
+                fetch('/batch-complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        files: completedCount,
+                        totalSizeMB: totalSizeMB,
+                        totalSizeGB: totalSizeGB,
+                        duration: batchDuration,
+                        averageSpeed: averageSpeed
+                    })
+                }).then(response => {
+                    console.log('Batch stats sent successfully:', response.status);
+                }).catch(error => {
+                    console.error('Failed to send batch statistics:', error);
+                });
+
+                // Show success message on screen
+                const successMessage = `All ${completedCount} files uploaded successfully! (${totalSizeGB >= 1 ? totalSizeGB.toFixed(2) + ' GB' : totalSizeMB.toFixed(2) + ' MB'} in ${batchDuration.toFixed(1)}s @ ${averageSpeed.toFixed(1)} MB/s)`;
+                showSuccess(successMessage);
+                // Don't reset form - keep completed files visible
+                uploadBtn.disabled = true; // Keep disabled since no files are selected
+                progressContainer.style.display = 'none';
+
+            } catch (error) {
+                console.error('Pre-check failed:', error);
+                showError('Failed to check files for duplicates');
+                uploadBtn.disabled = false;
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function uploadSingleFile(file, index, progressFill, progressText, statusDiv, statsDiv, progressCallback) {
+            return new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const formData = new FormData();
+                formData.append('files', file);
+
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        if (progressFill) progressFill.style.width = percentComplete + '%';
+                        if (progressText) progressText.textContent = Math.round(percentComplete) + '%';
+                        
+                        // Call progress callback for overall progress tracking
+                        if (progressCallback) {
+                            progressCallback(percentComplete);
+                        }
+                        
+                        // Calculate current speed
+                        const elapsed = (Date.now() - startTime) / 1000; // seconds
+                        if (elapsed > 0) {
+                            const speed = (e.loaded / 1024 / 1024) / elapsed; // MB/s
+                            if (statsDiv) {
+                                statsDiv.innerHTML = `
+                                    <span class="upload-speed">${speed.toFixed(1)} MB/s</span>
+                                    <span class="upload-time">Started: ${new Date(startTime).toLocaleTimeString()}</span>
+                                `;
+                            }
+                        }
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            const endTime = Date.now();
+                            const totalTime = (endTime - startTime) / 1000; // seconds
+                            const speed = (file.size / 1024 / 1024) / totalTime; // MB/s
+                            
+                            // File was uploaded successfully (duplicates are rejected before upload)
+                            if (progressFill) progressFill.style.width = '100%';
+                            if (progressText) progressText.textContent = '100%';
+                            
+                            if (statusDiv) {
+                                const elapsedTime = formatElapsedTime(totalTime);
+                                statusDiv.textContent = `Completed | ${speed.toFixed(1)} MB/s | ${elapsedTime}`;
+                                statusDiv.className = 'file-status status-completed';
+                            }
+                            
+                            if (statsDiv) {
+                                statsDiv.innerHTML = '';
+                            }
+                            
+                            resolve();
+                        } catch (parseError) {
+                            console.error('Error parsing response:', parseError);
+                            reject(new Error('Invalid response from server'));
+                        }
+                    } else if (xhr.status === 400) {
+                        // Handle duplicate file error
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse.error && errorResponse.error.includes('already exists')) {
+                                if (statusDiv) {
+                                    const elapsedTime = formatElapsedTime((Date.now() - startTime) / 1000);
+                                    statusDiv.textContent = `Skipped (already exists) | ${elapsedTime}`;
+                                    statusDiv.className = 'file-status status-skipped';
+                                }
+                                resolve(); // Don't reject, just resolve as skipped
+                            } else {
+                                reject(new Error(errorResponse.error || 'Upload failed'));
+                            }
+                        } catch (parseError) {
+                            reject(new Error('Upload failed'));
+                        }
+                    } else {
+                        reject(new Error('Upload failed'));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    const endTime = Date.now();
+                    if (statusDiv) {
+                        statusDiv.textContent = 'Failed';
+                        statusDiv.className = 'file-status status-error';
+                        
+                        // Add retry button for failed uploads
+                        const retryBtn = document.createElement('button');
+                        retryBtn.textContent = 'Retry';
+                        retryBtn.className = 'retry-btn';
+                        retryBtn.onclick = () => retryUpload(file, index, progressFill, progressText, statusDiv, statsDiv);
+                        statusDiv.appendChild(retryBtn);
+                    }
+                    reject(new Error('Upload failed'));
+                });
+
+                xhr.open('POST', '/upload');
+                xhr.send(formData);
+            });
+        }
+
+        function uploadSingleFileWithRetry(file, index, progressFill, progressText, statusDiv, statsDiv, progressCallback) {
+            return new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const formData = new FormData();
+                formData.append('files', file);
+
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        if (progressFill) progressFill.style.width = percentComplete + '%';
+                        if (progressText) progressText.textContent = Math.round(percentComplete) + '%';
+                        
+                        // Call progress callback for overall progress tracking
+                        if (progressCallback) {
+                            progressCallback(percentComplete);
+                        }
+                        
+                        // Calculate current speed
+                        const elapsed = (Date.now() - startTime) / 1000; // seconds
+                        if (elapsed > 0) {
+                            const speed = (e.loaded / 1024 / 1024) / elapsed; // MB/s
+                            if (statsDiv) {
+                                statsDiv.innerHTML = `
+                                    <span class="upload-speed">${speed.toFixed(1)} MB/s</span>
+                                    <span class="upload-time">Started: ${new Date(startTime).toLocaleTimeString()}</span>
+                                `;
+                            }
+                        }
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            const endTime = Date.now();
+                            const totalTime = (endTime - startTime) / 1000; // seconds
+                            const speed = (file.size / 1024 / 1024) / totalTime; // MB/s
+                            
+                            // File was uploaded successfully (duplicates are rejected before upload)
+                            if (progressFill) progressFill.style.width = '100%';
+                            if (progressText) progressText.textContent = '100%';
+                            
+                            if (statusDiv) {
+                                const elapsedTime = formatElapsedTime(totalTime);
+                                statusDiv.textContent = `Completed | ${speed.toFixed(1)} MB/s | ${elapsedTime}`;
+                                statusDiv.className = 'file-status status-completed';
+                            }
+                            
+                            if (statsDiv) {
+                                statsDiv.innerHTML = '';
+                            }
+                            
+                            resolve();
+                        } catch (parseError) {
+                            console.error('Error parsing response:', parseError);
+                            reject(new Error('Invalid response from server'));
+                        }
+                    } else if (xhr.status === 400) {
+                        // Handle duplicate file error
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse.error && errorResponse.error.includes('already exists')) {
+                                if (statusDiv) {
+                                    const elapsedTime = formatElapsedTime((Date.now() - startTime) / 1000);
+                                    statusDiv.textContent = `Skipped (already exists) | ${elapsedTime}`;
+                                    statusDiv.className = 'file-status status-skipped';
+                                }
+                                resolve(); // Don't reject, just resolve as skipped
+                            } else {
+                                reject(new Error(errorResponse.error || 'Upload failed'));
+                            }
+                        } catch (parseError) {
+                            reject(new Error('Upload failed'));
+                        }
+                    } else {
+                        reject(new Error(`Upload failed with status: ${xhr.status}`));
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    const endTime = Date.now();
+                    if (statusDiv) {
+                        statusDiv.textContent = 'Failed';
+                        statusDiv.className = 'file-status status-error';
+                        
+                        // Add retry button for failed uploads
+                        const retryBtn = document.createElement('button');
+                        retryBtn.textContent = 'Retry';
+                        retryBtn.className = 'retry-btn';
+                        retryBtn.onclick = () => retryUpload(file, index, progressFill, progressText, statusDiv, statsDiv);
+                        statusDiv.appendChild(retryBtn);
+                    }
+                    reject(new Error('Upload failed'));
+                });
+
+                xhr.open('POST', '/upload');
+                xhr.setRequestHeader('x-retry-attempt', 'true'); // Add retry header
+                xhr.send(formData);
+            });
+        }
+
+        function retryUpload(file, index, progressFill, progressText, statusDiv, statsDiv) {
+            // Remove retry button
+            const retryBtn = statusDiv.querySelector('.retry-btn');
+            if (retryBtn) {
+                retryBtn.remove();
+            }
+            
+            // Reset progress and status
+            if (progressFill) progressFill.style.width = '0%';
+            if (progressText) progressText.textContent = '0%';
+            if (statusDiv) {
+                statusDiv.textContent = 'Retrying...';
+                statusDiv.className = 'file-status status-uploading';
+            }
+            
+            // Retry the upload
+            uploadSingleFileWithRetry(file, index, document.getElementById(`fill-${index}`), document.getElementById(`text-${index}`), statusDiv, statsDiv, (progress) => {
+                // Update individual file progress
+                fileProgresses[index] = progress;
+                // Update overall progress in real-time
+                updateOverallProgress();
+            })
+                .then(() => {
+                    // Mark file as completed (100% progress)
+                    fileProgresses[index] = 100;
+                    updateOverallProgress();
+                    // Move to completed on success
+                    moveToCompleted(index);
+                })
+                .catch((error) => {
+                    console.error(`Retry failed for ${file.name}:`, error);
+                    if (statusDiv) {
+                        statusDiv.textContent = 'Failed';
+                        statusDiv.className = 'file-status status-error';
+                        
+                        // Add retry button again
+                        const retryBtn = document.createElement('button');
+                        retryBtn.textContent = 'Retry';
+                        retryBtn.className = 'retry-btn';
+                        retryBtn.onclick = () => retryUpload(file, index, progressFill, progressText, statusDiv, statsDiv);
+                        statusDiv.appendChild(retryBtn);
+                    }
+                });
+        }
+
+        function moveToCompleted(index) {
+            const fileElement = document.getElementById(`file-${index}`);
+            if (fileElement) {
+                // Remove progress bar for completed files
+                const progressDiv = fileElement.querySelector('.file-progress');
+                if (progressDiv) progressDiv.style.display = 'none';
+                
+                // Clear empty message if it exists
+                if (completedFiles.querySelector('.empty-column')) {
+                    completedFiles.innerHTML = '';
+                }
+                
+                // Move to completed column
+                completedFiles.appendChild(fileElement);
+                
+                updateColumnCounters();
+            }
+        }
+
+        function updateColumnCounters() {
+            // Count only actual file items, not empty messages
+            const activeCount = activeFiles.querySelectorAll('.file-item').length;
+            const completedCount = completedFiles.querySelectorAll('.file-item').length;
+            
+            // Update active column header
+            const activeHeader = document.querySelector('.column-header.active');
+            if (activeHeader) {
+                if (activeCount > 0) {
+                    activeHeader.textContent = `Awaiting Uploads (${activeCount})`;
+                } else {
+                    activeHeader.textContent = 'Awaiting Uploads';
+                }
+            }
+            
+            // Update completed column header - only show counter if there are actual completed files
+            const completedHeader = document.querySelector('.column-header.completed');
+            if (completedHeader) {
+                if (completedCount > 0) {
+                    completedHeader.textContent = `Completed Uploads (${completedCount})`;
+                } else {
+                    completedHeader.textContent = 'Completed Uploads';
+                }
+            }
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            uploadBtn.disabled = false;
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideMessages() {
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+        }
+
+        function resetForm() {
+            selectedFiles = [];
+            fileInput.value = '';
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'none';
+            fileInfo.style.display = 'none';
+            activeFiles.innerHTML = '';
+            completedFiles.innerHTML = '<div class="empty-column">No completed uploads yet</div>';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+        }
+
+        function clearCompletedFiles() {
+            completedFiles.innerHTML = '<div class="empty-column">No completed uploads yet</div>';
+        }
+    </script>
+</body>
+</html>
+

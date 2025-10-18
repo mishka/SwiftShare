@@ -16,8 +16,8 @@ A fast, wireless way to share files between your phone and computer, with live p
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/swiftshare.git
-   cd swiftshare
+   git clone https://github.com/mishka/SwiftShare.git
+   cd SwiftShare
    ```
 
 2. Install dependencies:

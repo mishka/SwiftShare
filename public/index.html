@@ -1160,6 +1160,11 @@
                 statusDiv.className = 'file-status status-uploading';
             }
             
+            // Reset stats div to show real-time stats during retry
+            if (statsDiv) {
+                statsDiv.innerHTML = '';
+            }
+            
             // Retry the upload
             uploadSingleFileWithRetry(file, index, document.getElementById(`fill-${index}`), document.getElementById(`text-${index}`), statusDiv, statsDiv, (progress) => {
                 // Update individual file progress
